@@ -43,7 +43,7 @@ export default function Home() {
       <div className="py-2 text-center shrink-0">
         <button onClick={() => router.push('/')}>
           <h1 className="text-xl font-bold">
-            <span className="text-green-400">HONMONO</span>栄養成分検索図鑑
+            <span className="text-green-400">HONMONO</span> Eiyo Zukan
           </h1>
         </button>
         <button
