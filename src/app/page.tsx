@@ -1,8 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-
-const APP_TITLE = 'HONMONO栄養成分ラボ'
 
 const CATEGORIES = [
   {
@@ -31,48 +29,46 @@ export default function Home() {
   const router = useRouter()
   const [selected, setSelected] = useState<string[]>([])
 
-  const toggle = (q: string) => {
-    if (selected.includes(q)) {
-      setSelected(selected.filter(s => s !== q))
-    } else {
-      if (selected.length >= 10) return alert('最大10個まで選択できます')
-      setSelected([...selected, q])
-    }
-  }
-
-  const goToCompare = () => {
-    router.push(`/compare?items=${selected.map(encodeURIComponent).join(',')}`)
-  }
+  const toggle = useCallback((q: string) => {
+    setSelected(prev => {
+      if (prev.includes(q)) return prev.filter(s => s !== q)
+      if (prev.length >= 10) { alert('最大10個まで選択できます'); return prev }
+      return [...prev, q]
+    })
+  }, [])
 
   return (
     <div className="h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
       {/* ヘッダー */}
-      <div className="py-3 text-center shrink-0">
-        <h1 className="text-xl font-bold">{APP_TITLE}</h1>
-        <p className="text-gray-400 text-xs">+ で比較追加　食品名で詳細ページへ</p>
+      <div className="py-2 text-center shrink-0">
+        <button onClick={() => router.push('/')}>
+          <h1 className="text-xl font-bold">
+            <span className="text-green-400">HONMONO</span>栄養成分検索図鑑
+          </h1>
+        </button>
         <button
           onClick={() => router.push('/ranking')}
-          className="mt-2 bg-yellow-600 hover:bg-yellow-500 px-4 py-1 rounded-full text-xs font-bold"
+          className="mt-1 bg-yellow-600 hover:bg-yellow-500 px-3 py-1 rounded-full text-xs font-bold"
         >
-          🏆 目的別ランキングを見る
+          🏆 目的別ランキング
         </button>
       </div>
 
       {/* 選択バー */}
-      <div className="px-4 mb-2 shrink-0 flex items-center gap-3 flex-wrap min-h-8">
-        {selected.length === 0 && (
-          <span className="text-xs text-gray-500">食品をタップして選択（最大10個）</span>
-        )}
-        {selected.map(q => (
-          <span key={q} className="bg-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-            {q}
-            <button onClick={() => toggle(q)} className="text-green-300 ml-1">✕</button>
-          </span>
-        ))}
+      <div className="px-3 mb-1 shrink-0 flex items-center gap-2 flex-wrap min-h-8">
+        {selected.length === 0
+          ? <span className="text-xs text-gray-400">👈 <b>＋</b>を押す→比較に追加　<b>食品名</b>を押す→詳細ページ</span>
+          : selected.map(q => (
+            <span key={q} className="bg-green-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+              {q}
+              <button onClick={() => toggle(q)} className="text-green-300 ml-1">✕</button>
+            </span>
+          ))
+        }
         {selected.length >= 2 && (
           <button
-            onClick={goToCompare}
-            className="bg-green-600 hover:bg-green-500 px-4 py-1 rounded-lg text-sm font-bold ml-auto"
+            onClick={() => router.push(`/compare?items=${selected.map(encodeURIComponent).join(',')}`)}
+            className="bg-green-600 hover:bg-green-500 px-3 py-1 rounded-lg text-xs font-bold ml-auto"
           >
             📊 {selected.length}個を比較
           </button>
@@ -83,30 +79,24 @@ export default function Home() {
       <div className="flex flex-1 gap-2 px-3 pb-3 overflow-hidden">
         {CATEGORIES.map(cat => (
           <div key={cat.label} className="flex flex-col bg-gray-900 rounded-xl p-2 flex-1 overflow-hidden">
-            <p className="text-center font-bold text-xs mb-2 shrink-0">
-              {cat.emoji} {cat.label}
-            </p>
-            <div className="overflow-y-auto flex flex-col gap-1 flex-1">
+            <p className="text-center font-bold text-xs mb-2 shrink-0">{cat.emoji} {cat.label}</p>
+            <div className="overflow-y-auto flex flex-col gap-0.5 flex-1">
               {cat.queries.map(q => {
                 const isSelected = selected.includes(q)
                 return (
-                  <div key={q} className={`rounded-lg text-xs transition-colors shrink-0 ${
-                    isSelected ? 'bg-green-700' : 'bg-gray-800 hover:bg-gray-700'
-                  }`}>
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => toggle(q)}
-                        className="w-6 flex items-center justify-center text-gray-400 hover:text-white shrink-0 py-1.5"
-                      >
-                        {isSelected ? '✓' : '+'}
-                      </button>
-                      <button
-                        onClick={() => router.push(`/food/${encodeURIComponent(q)}`)}
-                        className="flex-1 text-left px-1 py-1.5 text-gray-300"
-                      >
-                        {q}
-                      </button>
-                    </div>
+                  <div key={q} className={`flex items-center rounded-lg text-xs shrink-0 ${isSelected ? 'bg-green-700' : 'bg-gray-800'}`}>
+                    <button
+                      onClick={() => toggle(q)}
+                      className="w-7 flex items-center justify-center shrink-0 py-1.5 text-gray-300 hover:text-white"
+                    >
+                      {isSelected ? '✓' : '+'}
+                    </button>
+                    <button
+                      onClick={() => router.push(`/food/${encodeURIComponent(q)}`)}
+                      className="flex-1 text-left py-1.5 pr-2 text-gray-300 hover:text-white"
+                    >
+                      {q}
+                    </button>
                   </div>
                 )
               })}
