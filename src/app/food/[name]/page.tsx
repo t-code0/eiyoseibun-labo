@@ -89,7 +89,7 @@ export default function FoodDetail() {
                 <div key={key} className="bg-gray-800 rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-bold text-sm">{label}</span>
-                    <span className="text-green-400 font-bold">{value} {unit}</span>
+                    <span className="text-green-400 font-bold">{typeof value === 'number' ? Math.round(value * 10) / 10 : value} {unit}</span>
                   </div>
                   <p className="text-gray-400 text-xs leading-relaxed">{effect}</p>
                 </div>
