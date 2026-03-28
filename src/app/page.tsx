@@ -1,118 +1,124 @@
 'use client'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-
-const APP_TITLE = 'HONMONO栄養成分ラボ'
 
 const CATEGORIES = [
   {
     label: 'タンパク質', emoji: '💪',
-    queries: ['プロテイン','ホエイプロテイン','ソイプロテイン','カゼインプロテイン','鶏胸肉','豆腐','卵','ツナ缶','サーモン','マグロ','納豆','枝豆','ギリシャヨーグルト','カッテージチーズ','牛肉','豚肉','鶏もも肉','ささみ','エビ','イカ','タコ','アジ','サバ','イワシ','鮭','チキンジャーキー','プロテインバー','ゆで卵','スキムミルク','豆乳','テンペ','セイタン','チーズ','ヨーグルト','モッツァレラ','プロセスチーズ','しらす','ちりめん','あさり','牡蠣','ホタテ','タラ','カレイ','ブリ','カツオ','ひき肉','ローストビーフ','ハム','ターキー','レンズ豆'],
+    queries: ['ホエイプロテイン','ソイプロテイン','カゼインプロテイン','エッグプロテイン','鶏胸肉','ささみ','マグロ','カツオ','鮭','サバ','イワシ','卵','納豆','豆腐','枝豆','ギリシャヨーグルト','牛肉','豚肉','鶏もも肉','エビ','ホタテ','牡蠣','あさり','タラ','ブリ','ツナ缶','豆乳','チーズ','ヨーグルト','しらす','レンズ豆'],
   },
   {
     label: '糖質', emoji: '🍚',
-    queries: ['白米','玄米','もち麦','オートミール','シリアル','パン','食パン','フランスパン','全粒粉パン','ライ麦パン','パスタ','全粒粉パスタ','そば','うどん','ラーメン','そうめん','ビーフン','フォー','クスクス','キヌア','さつまいも','じゃがいも','里芋','山芋','とうもろこし','バナナ','りんご','ぶどう','マンゴー','パイナップル','みかん','いちご','スイカ','メロン','桃','あんこ','餅','おせんべい','クラッカー','グラノーラ','コーンフレーク','ミューズリー','ポレンタ','タピオカ','アマランサス','スペルト小麦','ファッロ','チアシード','フラックスシード','ひよこ豆'],
+    queries: ['白米','玄米','もち麦','オートミール','さつまいも','じゃがいも','バナナ','りんご','そば','パスタ','全粒粉パスタ','ひよこ豆','キヌア','チアシード','グラノーラ','食パン','全粒粉パン','みかん','いちご','ぶどう','マンゴー','桃','メロン','里芋','山芋','とうもろこし'],
   },
   {
     label: '脂質', emoji: '🥑',
-    queries: ['アボカド','ナッツ','アーモンド','くるみ','カシューナッツ','マカダミアナッツ','ピスタチオ','ピーナッツ','ヘーゼルナッツ','ペカンナッツ','オリーブオイル','ごま油','亜麻仁油','えごま油','ココナッツオイル','MCTオイル','バター','ギー','クリームチーズ','生クリーム','サーモン','マグロ','イワシ','サバ','アジ','チーズ','ゴーダチーズ','ブリーチーズ','カマンベール','パルメザン','ダークチョコレート','ごま','亜麻仁','かぼちゃの種','ひまわりの種','チアシード','ショートニング','ラード','牛脂','鴨肉','うなぎ','たらこ','いくら','うに','あん肝','ピーナッツバター','アーモンドバター','タヒニ','ヌテラ','ごまペースト'],
+    queries: ['アボカド','アーモンド','くるみ','カシューナッツ','マカダミアナッツ','ピスタチオ','ピーナッツ','ダークチョコレート','かぼちゃの種','ひまわりの種','ごま','サーモン','イワシ','サバ','ピーナッツバター','アーモンドバター','クリームチーズ','パルメザン','ゴーダチーズ'],
   },
   {
-    label: 'ビタミン・ミネラル', emoji: '🥦',
-    queries: ['ほうれん草','ブロッコリー','トマト','にんじん','かぼちゃ','パプリカ','小松菜','モロヘイヤ','春菊','水菜','みかん','レモン','キウイ','いちご','アセロラ','ブルーベリー','ラズベリー','クランベリー','ざくろ','グレープフルーツ','しいたけ','まいたけ','えのき','しめじ','なめこ','わかめ','昆布','ひじき','のり','めかぶ','にんにく','しょうが','ターメリック','シナモン','黒ごま','あまに','クコの実','なつめ','ドライアプリコット','プルーン','アーモンド','かぼちゃの種','ひまわりの種','松の実','栗','レバー','牡蠣','しじみ','あさり','うなぎ'],
+    label: 'ビタミン', emoji: '🥦',
+    queries: ['ほうれん草','ブロッコリー','パプリカ','小松菜','モロヘイヤ','水菜','春菊','アセロラ','キウイ','レモン','いちご','ブルーベリー','かぼちゃ','にんじん','トマト','しいたけ','まいたけ','えのき','しめじ','わかめ','ひじき','のり','鶏レバー','しじみ','にんにく'],
   },
   {
     label: 'サプリ', emoji: '💊',
-    queries: ['ビタミンC','ビタミンD','ビタミンB12','ビタミンA','ビタミンE','ビタミンK','ビタミンB1','ビタミンB2','ビタミンB6','葉酸','ビオチン','ナイアシン','パントテン酸','コリン','イノシトール','マグネシウム','カルシウム','亜鉛','鉄分','カリウム','セレン','クロム','ヨウ素','マンガン','銅','オメガ3','DHA','EPA','フィッシュオイル','クリルオイル','プロバイオティクス','乳酸菌','ビフィズス菌','酪酸菌','ラクトフェリン','コラーゲン','グルコサミン','コンドロイチン','ヒアルロン酸','MSM','CoQ10','αリポ酸','NAD','レスベラトロール','NMN','クレアチン','BCAA','グルタミン','アルギニン','シトルリン'],
+    queries: ['ビタミンC','ビタミンD','ビタミンB12','ビタミンA','ビタミンE','ビタミンK','ビタミンB1','葉酸','マグネシウム','カルシウム','亜鉛','鉄分','オメガ3','DHA','EPA','クレアチン','BCAA','EAA','グルタミン','コラーゲン','乳酸菌','ビフィズス菌','CoQ10','NMN','イヌリン'],
   },
 ]
 
 export default function Home() {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
 
-  const toggle = (q: string) => {
-    if (selected.includes(q)) {
-      setSelected(selected.filter(s => s !== q))
-    } else {
-      if (selected.length >= 10) return alert('最大10個まで選択できます')
-      setSelected([...selected, q])
-    }
-  }
+  const toggle = useCallback((q: string) => {
+    setSelected(prev => {
+      if (prev.includes(q)) return prev.filter(s => s !== q)
+      if (prev.length >= 10) { alert('最大10個まで選択できます'); return prev }
+      return [...prev, q]
+    })
+  }, [])
 
-  const goToCompare = () => {
-    router.push(`/compare?items=${selected.map(encodeURIComponent).join(',')}`)
-  }
+  const cat = CATEGORIES[activeTab]
 
   return (
     <div className="h-screen flex flex-col bg-gray-950 text-white overflow-hidden">
-      {/* ヘッダー */}
-      <div className="py-3 text-center shrink-0">
-        <h1 className="text-xl font-bold">{APP_TITLE}</h1>
-        <p className="text-gray-400 text-xs">+ で比較追加　食品名で詳細ページへ</p>
+      <div className="px-4 pt-4 pb-2 shrink-0">
+        <h1 className="text-lg font-bold text-center">
+          <span className="text-green-400">HONMONO</span>栄養成分検索図鑑
+        </h1>
         <button
           onClick={() => router.push('/ranking')}
-          className="mt-2 bg-yellow-600 hover:bg-yellow-500 px-4 py-1 rounded-full text-xs font-bold"
+          className="w-full mt-2 bg-yellow-600 hover:bg-yellow-500 py-2 rounded-xl text-sm font-bold"
         >
           🏆 目的別ランキングを見る
         </button>
       </div>
 
-      {/* 選択バー */}
-      <div className="px-4 mb-2 shrink-0 flex items-center gap-3 flex-wrap min-h-8">
-        {selected.length === 0 && (
-          <span className="text-xs text-gray-500">食品をタップして選択（最大10個）</span>
-        )}
-        {selected.map(q => (
-          <span key={q} className="bg-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-            {q}
-            <button onClick={() => toggle(q)} className="text-green-300 ml-1">✕</button>
-          </span>
-        ))}
-        {selected.length >= 2 && (
+      <div className="flex gap-1 px-3 pb-2 shrink-0 overflow-x-auto">
+        {CATEGORIES.map((c, i) => (
           <button
-            onClick={goToCompare}
-            className="bg-green-600 hover:bg-green-500 px-4 py-1 rounded-lg text-sm font-bold ml-auto"
+            key={c.label}
+            onClick={() => setActiveTab(i)}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+              activeTab === i ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400'
+            }`}
           >
-            📊 {selected.length}個を比較
+            {c.emoji} {c.label}
           </button>
-        )}
+        ))}
       </div>
 
-      {/* カテゴリ列 */}
-      <div className="flex flex-1 gap-2 px-3 pb-3 overflow-hidden">
-        {CATEGORIES.map(cat => (
-          <div key={cat.label} className="flex flex-col bg-gray-900 rounded-xl p-2 flex-1 overflow-hidden">
-            <p className="text-center font-bold text-xs mb-2 shrink-0">
-              {cat.emoji} {cat.label}
-            </p>
-            <div className="overflow-y-auto flex flex-col gap-1 flex-1">
-              {cat.queries.map(q => {
-                const isSelected = selected.includes(q)
-                return (
-                  <div key={q} className={`rounded-lg text-xs transition-colors shrink-0 ${
-                    isSelected ? 'bg-green-700' : 'bg-gray-800 hover:bg-gray-700'
-                  }`}>
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => toggle(q)}
-                        className="w-6 flex items-center justify-center text-gray-400 hover:text-white shrink-0 py-1.5"
-                      >
-                        {isSelected ? '✓' : '+'}
-                      </button>
-                      <button
-                        onClick={() => router.push(`/food/${encodeURIComponent(q)}`)}
-                        className="flex-1 text-left px-1 py-1.5 text-gray-300"
-                      >
-                        {q}
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
+      {selected.length > 0 && (
+        <div className="px-3 pb-2 shrink-0">
+          <div className="flex items-center gap-2 bg-gray-900 rounded-xl px-3 py-2">
+            <div className="flex-1 flex flex-wrap gap-1">
+              {selected.map(q => (
+                <span key={q} className="bg-green-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                  {q}
+                  <button onClick={() => toggle(q)} className="text-green-300">✕</button>
+                </span>
+              ))}
             </div>
+            {selected.length >= 2 && (
+              <button
+                onClick={() => router.push(`/compare?items=${selected.map(encodeURIComponent).join(',')}`)}
+                className="shrink-0 bg-green-600 px-3 py-1 rounded-lg text-xs font-bold"
+              >
+                比較
+              </button>
+            )}
           </div>
-        ))}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto px-3 pb-4">
+        <div className="flex flex-col gap-2">
+          {cat.queries.map(q => {
+            const isSelected = selected.includes(q)
+            return (
+              <div
+                key={q}
+                className={`flex items-center rounded-xl overflow-hidden ${
+                  isSelected ? 'bg-green-800' : 'bg-gray-800'
+                }`}
+              >
+                <button
+                  onClick={() => toggle(q)}
+                  className="w-12 h-12 flex items-center justify-center shrink-0 text-lg"
+                >
+                  {isSelected ? '✓' : '+'}
+                </button>
+                <button
+                  onClick={() => router.push(`/food/${encodeURIComponent(q)}`)}
+                  className="flex-1 text-left py-3 pr-4 font-medium"
+                >
+                  {q}
+                </button>
+                <span className="text-gray-500 text-xs pr-3">詳細 →</span>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
