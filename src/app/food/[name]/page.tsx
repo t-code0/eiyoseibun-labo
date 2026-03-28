@@ -1,4 +1,5 @@
 'use client'
+import { Suspense } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { JAPAN_FOODS } from '@/lib/japanFoods'
 
@@ -130,10 +131,13 @@ function getRecommendations(per100g: Record<string, number | undefined>): string
   return recs
 }
 
-export default function FoodDetail() {
+function FoodDetailContent() {
   const router = useRouter()
   const params = useParams()
-  const foodName = decodeURIComponent(params.name as string)
+  const rawName = params.name
+  if (!rawName) return <div className="min-h-screen bg-gray-950 text-white p-4">読み込み中...</div>
+
+  const foodName = decodeURIComponent(rawName as string)
   const food = JAPAN_FOODS.find(f => f.name === foodName)
   const serving = TYPICAL_SERVING[foodName]
 
@@ -195,5 +199,13 @@ export default function FoodDetail() {
         </>
       )}
     </div>
+  )
+}
+
+export default function FoodDetail() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-950 text-white p-4">読み込み中...</div>}>
+      <FoodDetailContent />
+    </Suspense>
   )
 }
